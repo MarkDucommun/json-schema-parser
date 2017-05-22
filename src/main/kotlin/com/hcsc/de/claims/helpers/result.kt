@@ -1,6 +1,5 @@
 package com.hcsc.de.claims.helpers
 
-import io.reactivex.Flowable
 import io.reactivex.Observable
 import io.reactivex.Single
 
@@ -43,7 +42,23 @@ fun <failureType, successType> SingleResult<failureType, successType>.mapSuccess
     }
 }
 
-fun <failureType, successType> List<SingleResult<failureType, successType>>.concat(): Flowable<Result<failureType, successType>> = Single.concat(this)
+fun <failureType, successType> List<Result<failureType, successType>>.traverse() : Result<failureType, List<successType>>{
+    val list : Result<failureType, List<successType>> = Success(content = emptyList())
+    return this.fold(list) { accum: Result<failureType, List<successType>>, result : Result<failureType, successType> ->
+        when(accum) {
+            is Success -> {
+                when(result) {
+                    is Success -> Success<failureType, List<successType>>(content = accum.content.plus(result.content))
+                    is Failure ->  Failure<failureType, List<successType>>(content = result.content)
+                }
+            }
+            is Failure -> Failure<failureType, List<successType>>(content = accum.content)
+        }
+    }
+}
+
+fun <failureType, successType> List<SingleResult<failureType, successType>>.concat() = Single.concat(this)
+//fun <failureType, successType> List<SingleResult<failureType, successType>>.concat(): Flowable<Result<failureType, successType>> = Single.concat(this)
 
 val EMPTY_SUCCESS = Success<String, Unit>(Unit)
 

@@ -1,5 +1,6 @@
 package com.hcsc.de.claims.jsonSizing
 
+import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -18,16 +19,20 @@ class JsonSizer {
 
     fun String.understandJsonSize(): JsonSizeNode {
 
-        val jsonNode = objectMapper.readValue<JsonNode>(this)
+        return if (this.isNotEmpty()) {
+            val jsonNode = objectMapper.readValue<JsonNode>(this)
 
-        val children = jsonNode.fieldNames.map { fieldName -> jsonNode[fieldName].understandSize(name = fieldName) }
+            val children = jsonNode.fieldNames.map { fieldName -> jsonNode[fieldName].understandSize(name = fieldName) }
 
-        return JsonSizeObject(
-                name = "root",
-                size = children.map { it.size }.sum(),
-                children = children,
-                averageChildSize = children.map { it.size }.averageInt()
-        )
+            JsonSizeObject(
+                    name = "root",
+                    size = children.map { it.size }.sum(),
+                    children = children,
+                    averageChildSize = children.map { it.size }.averageInt()
+            )
+        } else {
+            JsonSizeEmpty(name = "")
+        }
     }
 
     fun JsonNode.understandSize(name: String): JsonSizeNode {
@@ -78,8 +83,7 @@ class JsonSizer {
     ) = JsonSizeArray(
             name = name,
             size = size,
-            children = children,
-            averageChildSize = children.averageSize()
+            children = children
     )
 
     fun generateJsonEmpty(

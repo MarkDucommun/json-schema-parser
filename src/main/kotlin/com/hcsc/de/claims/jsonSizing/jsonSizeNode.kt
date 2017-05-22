@@ -25,8 +25,7 @@ data class JsonSizeObject(
 data class JsonSizeArray(
         override val name: String,
         override val size: Int,
-        val children: List<JsonSizeNode>,
-        val averageChildSize: Int
+        val children: List<JsonSizeNode>
 ) : JsonSizeNode() {
     override val empty: Boolean get() = children.isEmpty()
 }
